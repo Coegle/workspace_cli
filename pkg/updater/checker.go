@@ -46,7 +46,7 @@ func CheckAndNotice() {
 	if cache.LatestVersion != "" {
 		curr, err1 := semver.NewVersion(currentVer)
 		latest, err2 := semver.NewVersion(cache.LatestVersion)
-		if err1 == nil && err2 == nil && !latest.GreaterThan(curr) {
+		if err1 == nil && err2 == nil && latest.GreaterThan(curr) {
 			notice := color.New(color.FgYellow).Sprintf("\n🚀 A new version of ws is available: %s -> %s\n", core.Version, cache.LatestVersion)
 			_, _ = fmt.Fprint(os.Stderr, notice)
 
