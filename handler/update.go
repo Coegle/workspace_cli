@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/coegle/workspace_cli/core"
 	"github.com/coegle/workspace_cli/pkg/updater"
 )
@@ -24,7 +25,14 @@ func Update() error {
 		return err
 	}
 
-	if latest.Version() == core.Version {
+	curr, err1 := semver.NewVersion(core.Version)
+	latestVer, err2 := semver.NewVersion(latest.Version())
+
+	// If both can be parsed as semver and are equal (semver ignores 'v' prefix automatically)
+	if err1 == nil && err2 == nil && curr.Equal(latestVer) {
+		fmt.Println("You are already using the latest version:", core.Version)
+	} else if latest.Version() == core.Version {
+		// Fallback to exact string match if semver parsing fails
 		fmt.Println("You are already using the latest version:", core.Version)
 	} else {
 		fmt.Printf("Successfully updated to version %s\n", latest.Version())
