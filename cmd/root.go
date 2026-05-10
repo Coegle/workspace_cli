@@ -1,11 +1,12 @@
 package cmd
 
 import (
-	"github.com/coegle/workspace_cli/core"
-	"github.com/coegle/workspace_cli/pkg/updater"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/coegle/workspace_cli/core"
+	"github.com/coegle/workspace_cli/pkg/updater"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -33,7 +34,14 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	cobra.OnFinalize(updater.CheckAndNotice)
+
+	// We don't want to check for updates when the user is explicitly running "ws update"
+	cobra.OnFinalize(func() {
+		if len(os.Args) > 1 && os.Args[1] == "update" {
+			return
+		}
+		updater.CheckAndNotice()
+	})
 
 	rootCmd.PersistentFlags().StringVar(&cfgFile, core.PersistentFlagConfig, "", fmt.Sprintf("config file (default is $HOME/%s/%s.%s", core.ConfigPath, core.ConfigFile, core.ConfigType))
 }
