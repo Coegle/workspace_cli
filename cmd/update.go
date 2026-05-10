@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"coegle/workspace_cli/handler"
+	"github.com/coegle/workspace_cli/handler"
 
 	"github.com/spf13/cobra"
 )

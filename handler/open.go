@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"coegle/workspace_cli/core"
-	"coegle/workspace_cli/pkg/shell"
+	"github.com/coegle/workspace_cli/core"
+	"github.com/coegle/workspace_cli/pkg/shell"
 	"fmt"
 	"os"
 	"path/filepath"

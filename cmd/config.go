@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"coegle/workspace_cli/core"
+	"github.com/coegle/workspace_cli/core"
 	"fmt"
 	"os"
 	"path/filepath"

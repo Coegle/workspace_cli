@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"coegle/workspace_cli/core"
+	"github.com/coegle/workspace_cli/core"
 
 	"github.com/Masterminds/semver/v3"
 	"github.com/creativeprojects/go-selfupdate"

@@ -23,8 +23,7 @@
 ### 方式 2: 使用 `go install`
 如果你已经安装了 Go (1.20+)，可以直接通过以下命令安装：
 ```bash
-go install github.com/coegle/workspace_cli@latest
-# 注意：安装后如果名字不是 ws，你可以重命名或在 shell 中配置 alias。
+go install github.com/coegle/workspace_cli/cmd/ws@latest
 ```
 
 ## ⚙️ 初始配置

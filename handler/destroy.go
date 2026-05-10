@@ -1,8 +1,8 @@
 package handler
 
 import (
-	"coegle/workspace_cli/core"
-	"coegle/workspace_cli/pkg/git"
+	"github.com/coegle/workspace_cli/core"
+	"github.com/coegle/workspace_cli/pkg/git"
 	"errors"
 	"fmt"
 	"os"

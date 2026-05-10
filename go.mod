@@ -1,4 +1,4 @@
-module coegle/workspace_cli
+module github.com/coegle/workspace_cli
 
 go 1.25.8
 

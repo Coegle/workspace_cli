@@ -6,7 +6,7 @@ import (
 	"github.com/creativeprojects/go-selfupdate"
 )
 
-const RepoSlug = "coegle/workspace_cli"
+const RepoSlug = "github.com/coegle/workspace_cli"
 
 // Update checks for updates and updates the binary if a newer version is found.
 // It returns the latest Release info and any error encountered.

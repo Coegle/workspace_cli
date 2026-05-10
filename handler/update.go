@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"coegle/workspace_cli/core"
-	"coegle/workspace_cli/pkg/updater"
+	"github.com/coegle/workspace_cli/core"
+	"github.com/coegle/workspace_cli/pkg/updater"
 )
 
 func Update() error {

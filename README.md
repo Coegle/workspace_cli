@@ -23,8 +23,7 @@ You can download the latest pre-compiled binaries for your operating system from
 ### Option 2: Using `go install`
 If you have Go installed (1.20+), you can install `ws` directly:
 ```bash
-go install github.com/coegle/workspace_cli@latest
-# Note: Rename the binary to 'ws' or alias it in your shell if needed.
+go install github.com/coegle/workspace_cli/cmd/ws@latest
 ```
 
 ## ⚙️ Configuration
