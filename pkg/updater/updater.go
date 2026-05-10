@@ -12,7 +12,9 @@ const RepoSlug = "coegle/workspace_cli"
 // It returns the latest Release info and any error encountered.
 func Update(currentVersion string) (*selfupdate.Release, error) {
 	// go-selfupdate will automatically use GITHUB_TOKEN if it's in the environment
-	config := selfupdate.Config{}
+	config := selfupdate.Config{
+		Filters: []string{"^ws$|^ws.exe$"}, // Tell selfupdate to look for 'ws' (Linux/macOS) or 'ws.exe' (Windows) inside the archive
+	}
 
 	updater, err := selfupdate.NewUpdater(config)
 	if err != nil {
