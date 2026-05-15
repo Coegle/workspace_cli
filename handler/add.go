@@ -44,6 +44,46 @@ func Add(input core.AddInput) error {
 
 	fmt.Printf("Creating workspace: %s (Branch: %s)\n", wsName, featBranchName)
 
+	if len(cfg.Symlinks) > 0 {
+		fmt.Println("Setting up symlinks...")
+		for _, symlink := range cfg.Symlinks {
+			src := symlink.Source
+			dest := symlink.Destination
+
+			// Resolve ~ in source path
+			if strings.HasPrefix(src, "~/") {
+				if home, err := os.UserHomeDir(); err == nil {
+					src = filepath.Join(home, src[2:])
+				}
+			}
+
+			destPath := filepath.Join(wsDir, dest)
+
+			// Create parent directory for destination if it doesn't exist
+			if err := os.MkdirAll(filepath.Dir(destPath), 0755); err != nil {
+				fmt.Fprintf(os.Stderr, "  -> Failed to create directory for symlink %s: %v\n", destPath, err)
+				continue
+			}
+
+			// Check if source exists
+			if _, err := os.Stat(src); os.IsNotExist(err) {
+				fmt.Fprintf(os.Stderr, "  -> Warning: Source path for symlink does not exist: %s\n", src)
+				continue
+			}
+
+			// Remove existing destination if it exists
+			if _, err := os.Lstat(destPath); err == nil {
+				os.RemoveAll(destPath)
+			}
+
+			if err := os.Symlink(src, destPath); err != nil {
+				fmt.Fprintf(os.Stderr, "  -> Failed to create symlink %s -> %s: %v\n", src, destPath, err)
+			} else {
+				fmt.Printf("  -> Created symlink: %s -> %s\n", destPath, src)
+			}
+		}
+	}
+
 	baseRepos := cfg.GetReposPath()
 
 	for _, serviceName := range serviceRepoNames {

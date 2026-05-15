@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/coegle/workspace_cli/core"
 	"fmt"
+	"github.com/coegle/workspace_cli/core"
 	"os"
 	"path/filepath"
 
@@ -19,6 +19,7 @@ Available keys and their corresponding Environment Variables:
   base_repos      (Env: WS_BASE_REPOS)     The directory where all base service repositories are stored.
   base_ws         (Env: WS_BASE_WS)        The directory where feature workspaces will be created.
   replace_slash   (Env: WS_REPLACE_SLASH)  (true/false) Replace '/' with '_' in branch names when creating workspace directories.
+  symlinks        (Not supported via CLI set) Map of source to destination paths to be symlinked when creating a workspace. Edit config.yaml directly.
 
 Examples:
   ws config
@@ -38,6 +39,13 @@ Examples:
 			fmt.Printf("  base_repos: %s\n", cfg.GetReposPath())
 			fmt.Printf("  base_ws:    %s\n", cfg.GetWorkspacePath())
 			fmt.Printf("  replace_slash: %v\n", cfg.ReplaceSlashInDir)
+			if len(cfg.Symlinks) > 0 {
+				fmt.Printf("  symlinks:\n")
+				for _, symlink := range cfg.Symlinks {
+					fmt.Printf("    - src:  %s\n", symlink.Source)
+					fmt.Printf("      dest: %s\n", symlink.Destination)
+				}
+			}
 			fmt.Printf("\nConfig file loaded from: %s\n", viper.ConfigFileUsed())
 			fmt.Printf("Note: You can override these using environment variables (e.g., WS_REPLACE_SLASH=false)\n")
 			return nil

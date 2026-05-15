@@ -17,10 +17,16 @@ const (
 	UpdateCacheFile = "update_cache.json"
 )
 
+type Symlink struct {
+	Source      string `mapstructure:"src"`
+	Destination string `mapstructure:"dest"`
+}
+
 type Config struct {
-	BaseReposPath     string `mapstructure:"base_repos"`
-	BaseWorkspacePath string `mapstructure:"base_ws"`
-	ReplaceSlashInDir bool   `mapstructure:"replace_slash"`
+	BaseReposPath     string    `mapstructure:"base_repos"`
+	BaseWorkspacePath string    `mapstructure:"base_ws"`
+	ReplaceSlashInDir bool      `mapstructure:"replace_slash"`
+	Symlinks          []Symlink `mapstructure:"symlinks"`
 }
 
 func GetConfig() (*Config, error) {
