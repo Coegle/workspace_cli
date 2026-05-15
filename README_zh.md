@@ -40,6 +40,8 @@ ws config base_ws /path/to/your/workspaces
 
 *配置默认保存在 `~/.ws/config.yaml` 文件中。*
 
+如需了解更高级的配置（比如在所有工作区间自动共享 IDE 的 `symlinks` 软链接配置），请参考项目中的 [`config.example.yaml`](config.example.yaml) 示例文件。
+
 ## 🛠️ 核心工作流
 
 ### 1. 创建工作区 & 添加服务

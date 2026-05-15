@@ -40,6 +40,8 @@ ws config base_ws /path/to/your/workspaces
 
 *By default, the configuration is stored in `~/.ws/config.yaml`.*
 
+For more advanced configuration (like automatically setting up `symlinks` for your IDE across workspaces), please see the detailed examples in [`config.example.yaml`](config.example.yaml).
+
 ## 🛠️ Core Workflow
 
 ### 1. Create a Workspace & Add Services

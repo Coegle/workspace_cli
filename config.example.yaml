@@ -1,0 +1,15 @@
+# The directory where all base service repositories are stored.
+base_repos: /path/to/your/main/repos
+
+# The directory where new feature workspaces should be created.
+base_ws: /path/to/your/workspaces
+
+# (true/false) Replace '/' with '_' in branch names when creating workspace directories.
+replace_slash: true
+
+# Symlinks allow you to automatically create symbolic links when a new workspace is created.
+# This is useful for sharing common IDE configurations (like .idea) across workspaces.
+# The 'src' supports '~/' prefix for user home directory.
+symlinks:
+  - src: "~/.config/.idea"
+    dest: ".idea"
