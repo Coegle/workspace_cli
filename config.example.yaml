@@ -1,10 +1,19 @@
+# =============================================================================
+# Required
+# =============================================================================
+
 # The directory where all base service repositories are stored.
 base_repos: /path/to/your/main/repos
 
 # The directory where new feature workspaces should be created.
 base_ws: /path/to/your/workspaces
 
+# =============================================================================
+# Optional
+# =============================================================================
+
 # (true/false) Replace '/' with '_' in branch names when creating workspace directories.
+# Default: true
 replace_slash: true
 
 # Symlinks allow you to automatically create symbolic links when a new workspace is created.
@@ -13,3 +22,24 @@ replace_slash: true
 symlinks:
   - src: "~/.config/.idea"
     dest: ".idea"
+
+# cow_dirs lists repo-relative directories that should be copy-on-write (CoW) cloned
+# from the MAIN repo into a newly created worktree, using APFS clonefile on macOS.
+#
+# These are typically git-ignored codegen outputs (e.g. Kitex's `kitex_gen`, Hertz's
+# `hertz_gen`, or protobuf/gRPC generated `gen/` dirs) that are NOT checked out by
+# `git worktree add` and have no global store to back them, so every new worktree would
+# otherwise regenerate them from scratch (slow + extra disk). CoW cloning shares the
+# data blocks with the main repo's copy, so it's near-instant and uses almost no extra
+# disk.
+#
+# Semantics:
+#   - Donor is always the main repo (base_repos/<service>/<dir>).
+#   - Treated as a pure cache/warm-up: cloned as-is, with NO consistency check against
+#     the worktree's IDL. If the IDL changed, just re-run codegen in the worktree.
+#   - If the donor dir doesn't exist (codegen never run in the main repo), it's skipped.
+#   - Only works on the same APFS volume (macOS). Cross-volume / non-APFS is skipped
+#     rather than falling back to a full copy.
+cow_dirs:
+  - kitex_gen
+  - opp/opp_gen

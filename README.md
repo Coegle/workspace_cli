@@ -12,6 +12,7 @@ No more constantly stashing changes, checking out branches, or dealing with mixe
 - **Git Worktree Powered:** Fast and lightweight. No need to clone repositories multiple times.
 - **Interactive Service Resolution:** Fuzzy search for service names; if multiple match, interactively pick the one you need.
 - **Auto-Sync:** Easily synchronize your local feature branches with their remote tracking branches.
+- **CoW Cache Warm-up (macOS):** Copy-on-write clone git-ignored codegen directories (e.g. Kitex's `kitex_gen`) from the main repo into new worktrees — near-instant, near-zero extra disk.
 - **Self-Updating:** Built-in update checker to ensure you are always using the latest version.
 - **Cross-Platform:** Works on macOS, Linux, and Windows.
 
@@ -28,6 +29,8 @@ go install github.com/coegle/workspace_cli/cmd/ws@latest
 
 ## ⚙️ Configuration
 
+### Required
+
 Before using `ws`, you need to tell it where your base repositories are located and where you want to create your feature workspaces.
 
 ```bash
@@ -40,7 +43,27 @@ ws config base_ws /path/to/your/workspaces
 
 *By default, the configuration is stored in `~/.ws/config.yaml`.*
 
-For more advanced configuration (like automatically setting up `symlinks` for your IDE across workspaces), please see the detailed examples in [`config.example.yaml`](config.example.yaml).
+### Optional
+
+All of the following are optional — `ws` works out of the box with just the two settings above. See [`config.example.yaml`](config.example.yaml) for the full set (e.g. `replace_slash`, `symlinks` for sharing IDE configs across workspaces, and `cow_dirs` below).
+
+#### CoW Cache Warm-up (macOS / APFS)
+
+Some repos keep large **git-ignored codegen outputs** (e.g. Kitex's `kitex_gen`, Hertz's `hertz_gen`, or protobuf/gRPC generated `gen/` dirs). Since these are ignored, `git worktree add` never checks them out, so every new worktree would have to regenerate them — slow and disk-hungry.
+
+With `cow_dirs`, `ws` copy-on-write clones these directories from the **main repo** into each new worktree using APFS `clonefile`. The data blocks are shared with the main repo's copy, so it's near-instant and uses almost no extra disk.
+
+```yaml
+# in ~/.ws/config.yaml
+cow_dirs:
+  - kitex_gen
+```
+
+Notes:
+- The donor is always the main repo (`base_repos/<service>/kitex_gen`), so make sure you've run codegen there at least once.
+- It's a pure cache/warm-up: cloned as-is with **no** IDL consistency check. If the worktree's IDL differs, just re-run codegen in the worktree.
+- If the donor dir doesn't exist, the entry is silently skipped.
+- Only works on the same APFS volume; cross-volume / non-APFS is skipped (never falls back to a full copy).
 
 ## 🛠️ Core Workflow
 

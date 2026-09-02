@@ -12,6 +12,7 @@
 - **基于 Git Worktree：** 快速且轻量。无需多次 clone 同一个仓库。
 - **交互式服务解析：** 支持服务名称模糊搜索；如果有多个匹配项，支持交互式选择。
 - **分支自动同步：** 轻松将本地功能分支与远程跟踪分支（或主干分支）进行同步。
+- **CoW 缓存预热（macOS）：** 将主仓库中被 git 忽略的 codegen 目录（如 Kitex 的 `kitex_gen`）通过写时复制克隆到新工作区——近乎零耗时、零额外占盘。
 - **内置自更新：** 内置版本检查机制，确保你使用的始终是最新版本。
 - **跨平台：** 完美支持 macOS, Linux 和 Windows。
 
@@ -28,6 +29,8 @@ go install github.com/coegle/workspace_cli/cmd/ws@latest
 
 ## ⚙️ 初始配置
 
+### 必选配置
+
 在使用 `ws` 之前，你需要告诉它你的基础代码仓库在哪里，以及你想把新的功能工作区建在哪里。
 
 ```bash
@@ -40,7 +43,27 @@ ws config base_ws /path/to/your/workspaces
 
 *配置默认保存在 `~/.ws/config.yaml` 文件中。*
 
-如需了解更高级的配置（比如在所有工作区间自动共享 IDE 的 `symlinks` 软链接配置），请参考项目中的 [`config.example.yaml`](config.example.yaml) 示例文件。
+### 可选配置
+
+以下配置均为可选——只需上面两项，`ws` 即可开箱即用。完整配置项（如 `replace_slash`、用于跨工作区共享 IDE 配置的 `symlinks`，以及下面的 `cow_dirs`）请参考 [`config.example.yaml`](config.example.yaml) 示例文件。
+
+#### CoW 缓存预热（macOS / APFS）
+
+有些仓库会保存体积较大的**被 git 忽略的 codegen 产物**（例如 Kitex 的 `kitex_gen`、Hertz 的 `hertz_gen`，或 protobuf/gRPC 生成的 `gen/` 目录）。由于这些目录被忽略，`git worktree add` 不会 checkout 它们，于是每个新工作区都得重新生成一遍——既慢又占盘。
+
+通过 `cow_dirs`，`ws` 会用 APFS 的 `clonefile` 把这些目录从**主仓库**写时复制（CoW）克隆到每个新工作区。数据块与主仓库那份共享，因此近乎零耗时、几乎不额外占盘。
+
+```yaml
+# 位于 ~/.ws/config.yaml
+cow_dirs:
+  - kitex_gen
+```
+
+注意事项：
+- Donor（克隆源）永远是主仓库（`base_repos/<service>/kitex_gen`），所以请确保你至少在主仓库里跑过一次 codegen。
+- 它是纯缓存/预热：原样克隆，**不**校验 IDL 一致性。如果新工作区的 IDL 有变化，在工作区里重新跑一次 codegen 即可。
+- 如果 donor 目录不存在，该条目会被静默跳过。
+- 仅在同一 APFS 卷内生效；跨卷 / 非 APFS 会直接跳过（不会退化成完整拷贝）。
 
 ## 🛠️ 核心工作流
 

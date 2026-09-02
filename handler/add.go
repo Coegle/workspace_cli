@@ -1,14 +1,16 @@
 package handler
 
 import (
-	"github.com/coegle/workspace_cli/core"
-	"github.com/coegle/workspace_cli/pkg/git"
-	"github.com/coegle/workspace_cli/pkg/shell"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/coegle/workspace_cli/core"
+	"github.com/coegle/workspace_cli/pkg/cow"
+	"github.com/coegle/workspace_cli/pkg/git"
+	"github.com/coegle/workspace_cli/pkg/shell"
 )
 
 func Add(input core.AddInput) error {
@@ -116,7 +118,44 @@ func Add(input core.AddInput) error {
 			_, _ = fmt.Fprintf(os.Stderr, "Failed to add worktree for %s: %s\n", svc, out)
 			continue
 		}
+
+		cloneCowDirs(cfg, repoPath, targetPath)
 	}
 
 	return nil
+}
+
+// cloneCowDirs copy-on-write clones the configured cache/codegen directories
+// (cfg.CowDirs) from the main repo into the freshly created worktree. The donor
+// is always the main repo (repoPath). Each dir is treated as a pure warm-up
+// cache: on any issue (missing donor, cross-volume, non-APFS, clone failure) we
+// skip it rather than falling back to a full copy, since a full copy would
+// defeat the disk-saving purpose. The user can regenerate later if needed.
+func cloneCowDirs(cfg *core.Config, repoPath, targetPath string) {
+	if len(cfg.CowDirs) == 0 {
+		return
+	}
+	if !cow.Supported() {
+		return
+	}
+	for _, rel := range cfg.CowDirs {
+		rel = strings.TrimSpace(rel)
+		if rel == "" {
+			continue
+		}
+		donor := filepath.Join(repoPath, rel)
+		dst := filepath.Join(targetPath, rel)
+
+		info, err := os.Stat(donor)
+		if err != nil || !info.IsDir() {
+			// Donor doesn't exist (e.g. codegen never run in main repo) -> skip silently.
+			continue
+		}
+
+		if err := cow.CloneDir(donor, dst); err != nil {
+			fmt.Fprintf(os.Stderr, "  -> Skipped CoW clone of %s: %v\n", rel, err)
+			continue
+		}
+		fmt.Printf("  -> CoW cloned %s (cache warm-up)\n", rel)
+	}
 }

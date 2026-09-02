@@ -27,6 +27,12 @@ type Config struct {
 	BaseWorkspacePath string    `mapstructure:"base_ws"`
 	ReplaceSlashInDir bool      `mapstructure:"replace_slash"`
 	Symlinks          []Symlink `mapstructure:"symlinks"`
+	// CowDirs lists repo-relative directories (e.g. "kitex_gen") that should be
+	// copy-on-write cloned from the main repo into a new worktree. These are typically
+	// git-ignored codegen outputs with no global store to back them, so cloning them
+	// saves disk and time. Treated as a pure cache/warm-up: cloned as-is, no consistency
+	// check against the worktree's IDL.
+	CowDirs []string `mapstructure:"cow_dirs"`
 }
 
 func GetConfig() (*Config, error) {
