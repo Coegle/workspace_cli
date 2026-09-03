@@ -10,6 +10,7 @@ import (
 	"github.com/coegle/workspace_cli/core"
 	"github.com/coegle/workspace_cli/pkg/cow"
 	"github.com/coegle/workspace_cli/pkg/git"
+	"github.com/coegle/workspace_cli/pkg/hook"
 	"github.com/coegle/workspace_cli/pkg/shell"
 )
 
@@ -21,6 +22,22 @@ func Add(input core.AddInput) error {
 	wsName := input.GetWorkspaceName()
 	wsDir := filepath.Join(cfg.GetWorkspacePath(), wsName)
 	metaFile := filepath.Join(wsDir, ".ws_branch")
+
+	// hookEnv is injected into pre-add/post-add hook scripts as environment
+	// variables, giving them the context of the workspace being created:
+	//   WS_DIR    - absolute path of the workspace directory
+	//   WS_NAME   - workspace (safe directory) name
+	//   WS_BRANCH - feature branch name
+	//   WS_REPOS  - base_repos path holding the source repositories
+	hookEnv := map[string]string{
+		"WS_DIR":    wsDir,
+		"WS_NAME":   wsName,
+		"WS_BRANCH": featBranchName,
+		"WS_REPOS":  cfg.GetReposPath(),
+	}
+	if err := hook.RunPre("pre-add", hookEnv, wsDir); err != nil {
+		return err
+	}
 
 	if info, err := os.Stat(wsDir); err == nil && info.IsDir() {
 		if b, err := os.ReadFile(metaFile); err == nil {
@@ -121,6 +138,8 @@ func Add(input core.AddInput) error {
 
 		cloneCowDirs(cfg, repoPath, targetPath)
 	}
+
+	hook.Run("post-add", hookEnv, wsDir)
 
 	return nil
 }

@@ -13,6 +13,7 @@ No more constantly stashing changes, checking out branches, or dealing with mixe
 - **Interactive Service Resolution:** Fuzzy search for service names; if multiple match, interactively pick the one you need.
 - **Auto-Sync:** Easily synchronize your local feature branches with their remote tracking branches.
 - **CoW Cache Warm-up (macOS):** Copy-on-write clone git-ignored codegen directories (e.g. Kitex's `kitex_gen`) from the main repo into new worktrees — near-instant, near-zero extra disk.
+- **Lifecycle Hooks:** Run your own scripts before/after `ws add` (e.g. fetch the latest base branch, install deps, open the IDE) via a simple convention under `~/.ws/hooks/`.
 - **Self-Updating:** Built-in update checker to ensure you are always using the latest version.
 - **Cross-Platform:** Works on macOS, Linux, and Windows.
 
@@ -65,7 +66,46 @@ Notes:
 - If the donor dir doesn't exist, the entry is silently skipped.
 - Only works on the same APFS volume; cross-volume / non-APFS is skipped (never falls back to a full copy).
 
-## 🛠️ Core Workflow
+#### Lifecycle Hooks
+
+`ws` can run your own scripts around `ws add`, letting you customize the workflow without modifying `ws` itself (e.g. fetch the latest base branch before creating worktrees, install dependencies, or auto-open the IDE afterwards).
+
+Hooks are **opt-in by convention**: just drop an executable script at the expected path and `ws` will run it. If the script doesn't exist, it's silently skipped.
+
+| Hook | When it runs | On failure |
+| --- | --- | --- |
+| `~/.ws/hooks/pre-add` | Before the workspace is created | **Aborts** `ws add` (non-zero exit) |
+| `~/.ws/hooks/post-add` | After all worktrees are ready | Best-effort; a warning is printed but `ws` still succeeds |
+
+Each script receives the workspace context via environment variables:
+
+| Variable | Description |
+| --- | --- |
+| `WS_DIR` | Absolute path of the workspace directory |
+| `WS_NAME` | Workspace (safe directory) name |
+| `WS_BRANCH` | Feature branch name |
+| `WS_REPOS` | `base_repos` path holding the source repositories |
+
+Example — validate the branch name before creating, then open the IDE afterwards:
+
+```bash
+# ~/.ws/hooks/pre-add  (remember: chmod +x)
+#!/usr/bin/env bash
+[[ "$WS_BRANCH" == feat/* ]] || { echo "branch must start with feat/"; exit 1; }
+```
+
+```bash
+# ~/.ws/hooks/post-add  (chmod +x)
+#!/usr/bin/env bash
+# The working directory is already $WS_DIR
+code .
+```
+
+Notes:
+- The script must be executable (`chmod +x`); a non-executable file is skipped with a warning.
+- `post-add` runs in `$WS_DIR`; `pre-add` runs before that directory exists, so it uses the current directory instead.
+
+
 
 ### 1. Create a Workspace & Add Services
 Imagine you are working on a new feature called `feat_login` that requires modifying the `user_service` and `auth_service`.
